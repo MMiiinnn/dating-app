@@ -8,7 +8,6 @@ import {
   onSnapshot,
   doc,
   setDoc,
-  getDoc,
 } from 'firebase/firestore';
 import { db } from './config';
 
@@ -46,7 +45,7 @@ export async function getAllUsersExceptCurrent(uid) {
   }
 }
 
-// ─── Likes ─────────────────────────────────────────────────────────────────────
+// === Likes ===
 
 /**
  * @param {string} fromUid
@@ -114,7 +113,7 @@ export async function checkMutualLike(fromUid, toUid) {
   }
 }
 
-// ─── Matches ───────────────────────────────────────────────────────────────────
+// === Matches ===
 
 /**
  * @param {string} uid1
@@ -160,11 +159,9 @@ async function getExistingMatch(uid1, uid2) {
   return match ? { matchId: match.id, ...match.data() } : null;
 }
 
-// ─── Availability ──────────────────────────────────────────────────────────────
+// === Availability ===
 
 /**
- * Saves or updates a user's availability slots for a given match.
- * Uses uid+matchId as the document ID to allow upsert.
  * @param {string} uid
  * @param {string} matchId
  * @param {Array<{ start: string, end: string }>} slots
@@ -183,7 +180,7 @@ export async function saveAvailability(uid, matchId, slots) {
   }
 }
 
-// ─── Real-time Listeners ───────────────────────────────────────────────────────
+// === Real-time Listeners ===
 
 /**
  * @param {string} uid

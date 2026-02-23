@@ -21,7 +21,7 @@ export default function SchedulePage() {
   const [submitted, setSubmitted] = useState(false);
   const [saveError, setSaveError] = useState('');
 
-  // Fetch partner info from the match document
+  // Fetch partner info
   useEffect(() => {
     if (!matchId || !currentUser?.uid) return;
 
@@ -41,7 +41,7 @@ export default function SchedulePage() {
     fetchPartner();
   }, [matchId, currentUser?.uid]);
 
-  // Pre-populate slots if already submitted before
+  // Pre-populate slots
   useEffect(() => {
     if (myAvailability?.slots) {
       setSelectedSlots(myAvailability.slots);
@@ -75,7 +75,7 @@ export default function SchedulePage() {
           {/* Header */}
           <div className="mb-8 animate-slide-up">
             <h1 className="text-3xl font-extrabold text-gray-800">
-              Schedule a Date 📅
+              Schedule a Date 
             </h1>
             {partner && (
               <p className="text-gray-500 mt-1 text-sm">
@@ -85,11 +85,11 @@ export default function SchedulePage() {
             )}
           </div>
 
-          {/* Common Slot Banner — real-time */}
+          {/* Common Slot Banner */}
           {commonSlot && (
             <div className="mb-6 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-2xl p-5 text-white shadow-lg shadow-emerald-100 animate-bounce-in">
               <div className="flex items-center gap-3">
-                <span className="text-3xl">🎉</span>
+                <span className="text-3xl">✅</span>
                 <div>
                   <p className="font-bold text-lg">Perfect Match Found!</p>
                   <p className="text-emerald-100 text-sm">
@@ -109,7 +109,7 @@ export default function SchedulePage() {
           <div className="grid grid-cols-2 gap-4 mb-8">
             <div className={`rounded-xl p-4 border ${myAvailability ? 'bg-rose-50 border-rose-200' : 'bg-gray-50 border-gray-200'}`}>
               <div className="flex items-center gap-2">
-                <span className="text-xl">{myAvailability ? '✅' : '⏳'}</span>
+                <span className="text-xl text-green-500">{myAvailability ? '✅' : '⏳'}</span>
                 <div>
                   <p className="text-sm font-semibold text-gray-700">You</p>
                   <p className="text-xs text-gray-400">
@@ -123,7 +123,7 @@ export default function SchedulePage() {
 
             <div className={`rounded-xl p-4 border ${partnerAvailability ? 'bg-rose-50 border-rose-200' : 'bg-gray-50 border-gray-200'}`}>
               <div className="flex items-center gap-2">
-                <span className="text-xl">{partnerAvailability ? '✅' : '⏳'}</span>
+                <span className="text-xl text-green-500">{partnerAvailability ? '✅' : '⏳'}</span>
                 <div>
                   <p className="text-sm font-semibold text-gray-700">
                     {partner?.name || 'Partner'}
@@ -142,7 +142,7 @@ export default function SchedulePage() {
           {myAvailability && partnerAvailability && !commonSlot && (
             <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
               <p className="text-amber-700 font-medium">
-                😕 No overlapping slots found yet.
+                No overlapping slots found yet.
               </p>
               <p className="text-amber-500 text-sm mt-1">
                 Try updating your availability with more time options.
@@ -154,7 +154,7 @@ export default function SchedulePage() {
           <div className="bg-white rounded-2xl shadow-md p-6 animate-slide-up">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-bold text-gray-800">
-                🗓 Your Availability
+                Your Availability
               </h2>
               {submitted && (
                 <span className="text-xs bg-rose-100 text-rose-600 font-semibold px-3 py-1 rounded-full">
@@ -173,7 +173,7 @@ export default function SchedulePage() {
 
                 {saveError && (
                   <div className="mt-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-600">
-                    ⚠️ {saveError}
+                    {saveError}
                   </div>
                 )}
 
@@ -188,9 +188,9 @@ export default function SchedulePage() {
                       Saving...
                     </span>
                   ) : submitted ? (
-                    '♻️ Update Availability'
+                    'Update Availability'
                   ) : (
-                    '📤 Submit Availability'
+                    'Submit Availability'
                   )}
                 </button>
               </>

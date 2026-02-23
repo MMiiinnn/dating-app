@@ -1,12 +1,4 @@
 /**
- * Finds the first overlapping time range between two arrays of time slots.
- *
- * Algorithm:
- * 1. Parse all ISO strings to Date objects for numeric comparison.
- * 2. For each slot in user1Slots, compare with every slot in user2Slots.
- * 3. An overlap occurs when max(start1, start2) < min(end1, end2).
- * 4. Return the first overlapping range as ISO strings, or null if none found.
- *
  * @param {Array<{ start: string, end: string }>} user1Slots
  * @param {Array<{ start: string, end: string }>} user2Slots
  * @returns {{ start: string, end: string } | null}

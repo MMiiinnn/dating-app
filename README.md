@@ -1,6 +1,6 @@
 # Dating App Prototype
 
-A mini dating app prototype inspired by the **Breeze** model. Built with React, Firebase Firestore, and Tailwind CSS. Features mutual-like matching, intelligent date scheduling via an interval-overlap algorithm, and fully real-time UI powered by Firestore listeners.
+A mini dating app prototype built with React, Firebase Firestore, and Tailwind CSS. Features mutual-like matching, intelligent date scheduling via an interval-overlap algorithm, and fully real-time UI powered by Firestore listeners.
 
 ---
 
@@ -30,11 +30,13 @@ A mini dating app prototype inspired by the **Breeze** model. Built with React, 
 
 ---
 
-## Project Structure
+## System Architecture
+
+The project is organized into **clearly separated layers**, each with a single responsibility:
 
 ```
 src/
-├── main.jsx                
+├── main.jsx                  
 ├── App.jsx                   
 ├── context/
 │   └── UserContext.jsx       
@@ -48,15 +50,180 @@ src/
 │   └── scheduler.js          
 ├── components/
 │   ├── Navbar.jsx
-│   ├── UserCard.jsx          
-│   ├── MatchNotification.jsx 
+│   ├── UserCard.jsx
+│   ├── MatchNotification.jsx
 │   └── TimeSlotPicker.jsx    
 └── pages/
-    ├── RegisterPage.jsx
-    ├── DiscoverPage.jsx
-    ├── MatchesPage.jsx
-    └── SchedulePage.jsx
+    ├── RegisterPage.jsx      
+    ├── DiscoverPage.jsx      
+    ├── MatchesPage.jsx       
+    └── SchedulePage.jsx      
 ```
+
+**Architecture principles applied:**
+- **Data layer first** — `firebase/firestore.js` is the single source of truth for all database operations. No page talks to Firestore directly.
+- **Logic layer second** — Custom hooks (`useMatches`, `useAvailability`) encapsulate subscriptions and side effects so pages stay clean.
+- **UI layer last** — Pages and components only receive data and call functions; they contain no business logic.
+- **Pure utility** — `scheduler.js` is a zero-dependency pure function that can be tested in isolation.
+
+---
+
+## Data Storage
+
+This app uses **two storage mechanisms**:
+
+### 1. Firebase Firestore (primary database)
+
+All persistent user data, likes, matches, and availability are stored in **Cloud Firestore** — a NoSQL document database. It was chosen because it supports **real-time listeners** out of the box, which is the core requirement of this app.
+
+The Firestore schema has 4 collections:
+
+```
+/users/{uid}
+  uid, name, age, gender, bio, email, createdAt
+
+/likes/{autoId}
+  fromUid, toUid, timestamp
+
+/matches/{matchId}
+  userIds: [uid1, uid2]
+  matchId: "self-reference"
+  createdAt
+
+/availabilities/{uid_matchId}
+  uid, matchId
+  slots: [{ start: ISO, end: ISO }, ...]
+```
+
+**Key design decisions:**
+- **Deterministic document IDs** for availabilities (`uid_matchId`) enable **upsert** with `setDoc(..., { merge: true })` — users can re-submit without creating duplicate records
+- **`array-contains` queries** on `userIds` field to find all matches belonging to a specific user
+- **`serverTimestamp()`** for reliable timestamps independent of the client's local clock
+
+### 2. localStorage (session persistence)
+
+Because this prototype does not use Firebase Authentication, the user's **generated UID is stored in `localStorage`** as a lightweight session token.
+
+```js
+// On register: save session
+localStorage.setItem('datingAppUid', uid);
+
+// On page load: restore session (UserContext.jsx)
+const storedUid = localStorage.getItem('datingAppUid');
+if (storedUid) fetchUserFromFirestore(storedUid);
+```
+
+This means the user stays "logged in" across page refreshes without needing a real auth system. It is intentionally simple for a prototype.
+
+---
+
+## How the Match Logic Works
+
+Matching follows a **mutual-like model**: a match only exists when **both users have liked each other**.
+
+When a user clicks "Like" on a profile card, `sendLike()` in `firestore.js` runs three chained steps:
+
+```
+sendLike(fromUid, toUid)
+  │
+  ├── Step 1: Check for duplicate like
+  │     → if like already exists, abort early
+  │
+  ├── Step 2: Write like document to /likes
+  │     → { fromUid, toUid, timestamp }
+  │
+  └── Step 3: Check for mutual like
+        → Query /likes where fromUid == toUid AND toUid == fromUid
+        │
+        ├── Mutual like found?
+        │     → YES: createMatch(uid1, uid2)
+        │             → Write to /matches: { userIds: [uid1, uid2], createdAt }
+        │             → Return { matched: true, matchId }
+        │
+        └── NO: Return { matched: false }
+```
+
+If a match is created, the `DiscoverPage` receives `{ matched: true }` and triggers the `MatchNotification` modal. This modal auto-dismisses after 5 seconds using `setTimeout` with proper cleanup in `useEffect` to avoid memory leaks.
+
+On the **Matches Page**, a Firestore `onSnapshot` listener continuously watches the `/matches` collection using `array-contains` on `userIds`. This means the matches list **updates live** for both users the moment a match is created — no page refresh needed.
+
+---
+
+## How the Overlapping Slot Algorithm Works
+
+Date scheduling uses a **pure interval overlap detection algorithm** in `utils/scheduler.js`.
+
+### Input
+Two arrays of time slots, one per user. Each slot is a 1-hour block represented as ISO 8601 timestamps:
+```js
+[{ start: "2026-02-24T08:00:00.000Z", end: "2026-02-24T09:00:00.000Z" }, ...]
+```
+
+### Algorithm
+
+```js
+export function findFirstCommonSlot(user1Slots, user2Slots) {
+  for (const slot1 of user1Slots) {
+    const start1 = new Date(slot1.start).getTime(); // convert to ms
+    const end1   = new Date(slot1.end).getTime();
+
+    for (const slot2 of user2Slots) {
+      const start2 = new Date(slot2.start).getTime();
+      const end2   = new Date(slot2.end).getTime();
+
+      const overlapStart = Math.max(start1, start2); // later of the two starts
+      const overlapEnd   = Math.min(end1, end2);     // earlier of the two ends
+
+      if (overlapStart < overlapEnd) {
+        // A real overlap exists — return it immediately
+        return {
+          start: new Date(overlapStart).toISOString(),
+          end:   new Date(overlapEnd).toISOString(),
+        };
+      }
+    }
+  }
+  return null; 
+}
+```
+
+### Why This Formula Works
+
+- `Math.max(start1, start2)` → the **later** of the two start times. An overlap can only begin after **both** users are available.
+- `Math.min(end1, end2)` → the **earlier** of the two end times. An overlap must end before **either** user becomes unavailable.
+- If `overlapStart < overlapEnd`, a genuine overlap window exists.
+
+**Time complexity: O(n × m)** where n and m are the number of slots each user submitted.
+
+The result is displayed as a **live green banner** on the Schedule page, and it appears in real-time on **both users' screens** the moment either of them submits or updates their availability — powered by the `onSnapshot` listener in `useAvailability.js`.
+
+---
+
+## If I Had More Time
+
+Given more time, I would improve the following areas:
+
+1. **Real Firebase Authentication** — Replace the `localStorage` pseudo-auth with Firebase Auth (Google sign-in or email/password). This would add proper session management, security rules enforcement, and multi-device support.
+
+2. **Firestore Security Rules** — The current prototype runs in "test mode" (open read/write). In production, I would add rules so users can only read/write their own data and can only create matches through verified mutual likes.
+
+3. **Profile Photos** — Integrate Firebase Storage so users can upload a profile picture during registration. User cards would display real photos instead of an avatar placeholder.
+
+4. **Smarter Scheduling** — The current algorithm returns the **first** overlap. I would enhance it to return **all** overlapping slots ranked by earliest date, and let both users vote on their preferred time.
+
+5. **Better UX on Mobile** — The `TimeSlotPicker` grid is scroll-heavy on small screens. I would redesign it as a swipeable day-by-day view for a more native mobile feel.
+
+6. **Notification System** — Add push notifications (via Firebase Cloud Messaging) so users are alerted of a new match or when a date slot is confirmed, even when the app is in the background.
+
+---
+
+## Proposed Features
+
+| # | Feature | Why |
+|---|---|---|
+| 1 | **Compatibility Score** | Show a match percentage on each profile card based on shared interests or age proximity |
+| 2 | **Chat After Matching** | Unlock a real-time chat room between matched users using Firestore |
+| 3 | **Date Confirmation** | A "Confirm Date" button that locks the agreed slot and sends a reminder to both users |
 
 ---
 
@@ -108,90 +275,6 @@ npm run dev
 ```
 
 The app will be available at `http://localhost:5173`.
-
----
-
-## Firestore Data Model
-
-```
-/users/{uid}
-  uid, name, age, gender, bio, email, createdAt
-
-/likes/{autoId}
-  fromUid, toUid, timestamp
-
-/matches/{matchId}
-  userIds: [uid1, uid2]
-  matchId: "self-reference"
-  createdAt
-
-/availabilities/{uid_matchId}
-  uid, matchId
-  slots: [{ start: ISO, end: ISO }, ...]
-```
-
-**Key design decisions:**
-- **Deterministic document IDs** for availabilities (`uid_matchId`) enable **upsert** with `setDoc(..., { merge: true })` — no duplicate records per user per match
-- **`array-contains` queries** to find all matches belonging to a user
-- **`serverTimestamp()`** for reliable server-side timestamps independent of client clocks
-
----
-
-## How the Core Logic Works
-
-### Mutual Matching
-
-```
-sendLike(fromUid, toUid)
-  → 1. Check for duplicate likes
-  → 2. Write like doc to /likes
-  → 3. Check if toUid already liked fromUid
-       → YES: createMatch(uid1, uid2) → write to /matches
-       → NO:  return { matched: false }
-```
-
-### Scheduling Algorithm (`scheduler.js`)
-
-A pure interval overlap detection function using Unix timestamps:
-
-```js
-const overlapStart = Math.max(start1, start2); 
-const overlapEnd   = Math.min(end1, end2);     
-if (overlapStart < overlapEnd) → OVERLAP FOUND ✓
-```
-
-Returns the **first** overlapping time slot between two users' availability lists. Time complexity: **O(n × m)**.
-
-### Real-time Updates
-
-Both `MatchesPage` and `SchedulePage` use Firestore `onSnapshot` listeners via custom hooks. This means the UI updates **instantly across all connected clients** without any polling or page refresh.
-
-```js
-// Pattern used in all real-time hooks
-useEffect(() => {
-  const unsubscribe = listenForMatches(uid, setMatches);
-  return () => unsubscribe(); // cleanup on unmount
-}, [uid]);
-```
-
----
-
-## Key Techniques
-
-| Concept | Where Used |
-|---|---|
-| **Custom Hooks** | `useMatches`, `useAvailability` — encapsulate Firestore subscriptions |
-| **React Context** | `UserContext` — app-wide user session without Redux |
-| **Real-time Firestore** (`onSnapshot`) | Matches list + availability updates live |
-| **Listener Cleanup** | All `useEffect` hooks return `unsubscribe()` to prevent memory leaks |
-| **`useCallback` memoization** | `DiscoverPage` — prevents unnecessary re-renders of `UserCard` |
-| **Pseudo-auth with `localStorage`** | UID stored in `localStorage` as a lightweight session token |
-| **Controlled Form** | Single state object + computed key pattern in `RegisterPage` |
-| **Interval Overlap Algorithm** | `max(start1,start2) < min(end1,end2)` for schedule matching |
-| **`Promise.all`** | `MatchesPage` — parallel fetching of partner profiles (no waterfall) |
-| **Protected Routes** | `ProtectedRoute` component wrapping all pages except `/register` |
-| **`date-fns`** | Time slot generation, formatting, and date arithmetic in `TimeSlotPicker` |
-| **Upsert pattern** | `setDoc(..., { merge: true })` allows re-submitting availability without duplicates |
 
 ---
 

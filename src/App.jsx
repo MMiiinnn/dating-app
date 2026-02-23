@@ -61,7 +61,6 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      {/* Default: redirect to register or discover */}
       <Route
         path="*"
         element={<Navigate to={currentUser ? '/discover' : '/register'} replace />}

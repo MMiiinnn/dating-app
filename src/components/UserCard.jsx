@@ -4,10 +4,6 @@ import { useUser } from '../context/UserContext';
 
 const GENDER_EMOJI = { male: '👨', female: '👩', other: '🧑' };
 
-/**
- * UserCard: displays a user profile and a Like button.
- * When liked, calls onMatch if a mutual match is created.
- */
 export default function UserCard({ user, onMatch, alreadyLiked }) {
   const { currentUser } = useUser();
   const [liked, setLiked] = useState(alreadyLiked);

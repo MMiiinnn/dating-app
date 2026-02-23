@@ -2,8 +2,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 
 const NAV_LINKS = [
-  { to: '/discover', label: 'Discover', emoji: '🔍' },
-  { to: '/matches', label: 'Matches', emoji: '💞' },
+  { to: '/discover', label: 'Discover'},
+  { to: '/matches', label: 'Matches'},
 ];
 
 export default function Navbar() {
@@ -15,15 +15,14 @@ export default function Navbar() {
       <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link to="/discover" className="flex items-center gap-2 group">
-          <span className="text-2xl group-hover:scale-110 transition-transform duration-200">💘</span>
           <span className="text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-500">
-            Breeze
+            Dating App
           </span>
         </Link>
 
-        {/* Nav Links */}
+        {/* Links */}
         <div className="flex items-center gap-1">
-          {NAV_LINKS.map(({ to, label, emoji }) => {
+          {NAV_LINKS.map(({ to, label }) => {
             const active = location.pathname.startsWith(to);
             return (
               <Link
@@ -35,7 +34,6 @@ export default function Navbar() {
                     : 'text-gray-500 hover:bg-rose-50 hover:text-rose-500'
                 }`}
               >
-                <span>{emoji}</span>
                 <span className="hidden sm:inline">{label}</span>
               </Link>
             );

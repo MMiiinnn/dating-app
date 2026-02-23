@@ -77,7 +77,6 @@ export default function RegisterPage() {
         {/* Card */}
         <div className="bg-white rounded-3xl shadow-xl shadow-rose-100 p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Name */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                 Full Name *
@@ -93,7 +92,6 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* Email */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                 Email *
@@ -109,7 +107,6 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* Age & Gender */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">
@@ -146,7 +143,6 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* Bio */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                 About You
@@ -161,14 +157,12 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* Error */}
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-600">
                 {error}
               </div>
             )}
 
-            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
@@ -185,10 +179,6 @@ export default function RegisterPage() {
             </button>
           </form>
         </div>
-
-        <p className="text-center text-xs text-gray-400 mt-6">
-          No authentication required — this is a prototype
-        </p>
       </div>
     </div>
   );

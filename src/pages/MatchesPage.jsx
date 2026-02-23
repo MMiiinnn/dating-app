@@ -12,7 +12,7 @@ export default function MatchesPage() {
   const { matches, loading } = useMatches(currentUser?.uid);
   const [matchDetails, setMatchDetails] = useState({}); 
 
-  // Fetch partner profile for each match
+  // Fetch partner profile 
   useEffect(() => {
     if (!matches.length || !currentUser) return;
 

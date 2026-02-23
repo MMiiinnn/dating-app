@@ -87,7 +87,7 @@ export default function DiscoverPage() {
         </div>
       </div>
 
-      {/* Match notification modal */}
+      {/* Match notification */}
       {matchEvent && (
         <MatchNotification
           matchedUser={matchEvent.user}

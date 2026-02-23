@@ -1,13 +1,9 @@
 import { useState } from 'react';
-import { addDays, startOfDay, format, addHours, isBefore, isAfter } from 'date-fns';
+import { addDays, startOfDay, format, addHours } from 'date-fns';
 
 const HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
 const WEEKS = 3;
 
-/**
- * TimeSlotPicker: lets users select available 1-hour slots over the next 3 weeks.
- * Each selected slot becomes { start: ISOString, end: ISOString }.
- */
 export default function TimeSlotPicker({ onSlotsChange }) {
   const [selectedSlots, setSelectedSlots] = useState([]);
   const today = startOfDay(new Date());
@@ -43,7 +39,7 @@ export default function TimeSlotPicker({ onSlotsChange }) {
       {selectedSlots.length > 0 && (
         <div className="bg-rose-50 border border-rose-200 rounded-xl p-3">
           <p className="text-sm font-semibold text-rose-600 mb-2">
-            ✅ {selectedSlots.length} slot{selectedSlots.length > 1 ? 's' : ''} selected
+            {selectedSlots.length} slot{selectedSlots.length > 1 ? 's' : ''} selected
           </p>
           <div className="flex flex-wrap gap-2">
             {selectedSlots
@@ -67,7 +63,6 @@ export default function TimeSlotPicker({ onSlotsChange }) {
           </h4>
           <div className="overflow-x-auto">
             <div className="min-w-max">
-              {/* Day Headers */}
               <div className="flex gap-1 mb-1">
                 <div className="w-16" />
                 {weekDays.map((day) => (
@@ -81,7 +76,6 @@ export default function TimeSlotPicker({ onSlotsChange }) {
                 ))}
               </div>
 
-              {/* Hour Rows */}
               {HOURS.map((hour) => (
                 <div key={hour} className="flex gap-1 mb-1 items-center">
                   <div className="w-16 text-xs text-gray-400 text-right pr-2 shrink-0">
