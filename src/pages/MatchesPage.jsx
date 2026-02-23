@@ -43,11 +43,11 @@ export default function MatchesPage() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50 pt-20 pb-12">
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50 pt-16 sm:pt-20 pb-12">
         <div className="max-w-3xl mx-auto px-4">
           {/* Header */}
-          <div className="mb-8 animate-slide-up">
-            <h1 className="text-3xl font-extrabold text-gray-800">Your Matches</h1>
+          <div className="mb-6 sm:mb-8 animate-slide-up">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-800">Your Matches</h1>
             <p className="text-gray-500 mt-1 text-sm">
               You both liked each other — now schedule a date!
             </p>
@@ -78,7 +78,7 @@ export default function MatchesPage() {
                 return (
                   <div
                     key={match.id}
-                    className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-5 flex items-center gap-4 animate-slide-up"
+                    className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-4 sm:p-5 flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 animate-slide-up"
                   >
                     {/* Avatar */}
                     <div className="w-14 h-14 rounded-full bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center text-2xl shrink-0">
@@ -87,7 +87,7 @@ export default function MatchesPage() {
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-gray-800 text-lg truncate">
+                      <h3 className="font-bold text-gray-800 text-base sm:text-lg truncate">
                         {partner?.name || 'Loading...'}
                       </h3>
                       {partner && (
@@ -105,7 +105,7 @@ export default function MatchesPage() {
                     {/* Action */}
                     <Link
                       to={`/schedule/${match.id}`}
-                      className="shrink-0 px-4 py-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 text-white font-semibold text-sm hover:from-rose-600 hover:to-pink-600 transition-all duration-200 active:scale-95 shadow-sm"
+                      className="w-full sm:w-auto text-center shrink-0 px-4 py-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 text-white font-semibold text-sm hover:from-rose-600 hover:to-pink-600 transition-all duration-200 active:scale-95 shadow-sm"
                     >
                       Schedule
                     </Link>

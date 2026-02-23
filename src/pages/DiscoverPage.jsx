@@ -43,11 +43,11 @@ export default function DiscoverPage() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50 pt-20 pb-12">
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50 pt-16 sm:pt-20 pb-12">
         <div className="max-w-5xl mx-auto px-4">
           {/* Header */}
-          <div className="mb-8 animate-slide-up">
-            <h1 className="text-3xl font-extrabold text-gray-800">
+          <div className="mb-6 sm:mb-8 animate-slide-up">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-800">
               Discover People
             </h1>
             <p className="text-gray-500 mt-1 text-sm">

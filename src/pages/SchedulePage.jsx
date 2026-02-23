@@ -70,12 +70,12 @@ export default function SchedulePage() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50 pt-20 pb-16">
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50 pt-16 sm:pt-20 pb-16">
         <div className="max-w-4xl mx-auto px-4">
           {/* Header */}
-          <div className="mb-8 animate-slide-up">
-            <h1 className="text-3xl font-extrabold text-gray-800">
-              Schedule a Date 
+          <div className="mb-6 sm:mb-8 animate-slide-up">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-800">
+              Schedule a Date
             </h1>
             {partner && (
               <p className="text-gray-500 mt-1 text-sm">
@@ -87,15 +87,15 @@ export default function SchedulePage() {
 
           {/* Common Slot Banner */}
           {commonSlot && (
-            <div className="mb-6 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-2xl p-5 text-white shadow-lg shadow-emerald-100 animate-bounce-in">
-              <div className="flex items-center gap-3">
-                <span className="text-3xl">✅</span>
+            <div className="mb-6 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-2xl p-4 sm:p-5 text-white shadow-lg shadow-emerald-100 animate-bounce-in">
+              <div className="flex items-start sm:items-center gap-3">
+                <span className="text-2xl sm:text-3xl shrink-0">✅</span>
                 <div>
-                  <p className="font-bold text-lg">Perfect Match Found!</p>
+                  <p className="font-bold text-base sm:text-lg">Perfect Match Found!</p>
                   <p className="text-emerald-100 text-sm">
                     First available slot:
                   </p>
-                  <p className="font-bold text-xl mt-0.5">
+                  <p className="font-bold text-lg sm:text-xl mt-0.5">
                     {format(new Date(commonSlot.start), 'EEEE, MMMM d')} ·{' '}
                     {format(new Date(commonSlot.start), 'h:mm a')} –{' '}
                     {format(new Date(commonSlot.end), 'h:mm a')}
@@ -106,7 +106,7 @@ export default function SchedulePage() {
           )}
 
           {/* Status Cards Row */}
-          <div className="grid grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
             <div className={`rounded-xl p-4 border ${myAvailability ? 'bg-rose-50 border-rose-200' : 'bg-gray-50 border-gray-200'}`}>
               <div className="flex items-center gap-2">
                 <span className="text-xl text-green-500">{myAvailability ? '✅' : '⏳'}</span>
@@ -151,7 +151,7 @@ export default function SchedulePage() {
           )}
 
           {/* Slot Picker */}
-          <div className="bg-white rounded-2xl shadow-md p-6 animate-slide-up">
+          <div className="bg-white rounded-2xl shadow-md p-4 sm:p-6 animate-slide-up">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-bold text-gray-800">
                 Your Availability

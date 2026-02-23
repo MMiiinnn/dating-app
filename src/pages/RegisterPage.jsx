@@ -62,7 +62,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50 flex items-center justify-center p-4 sm:p-6">
       <div className="w-full max-w-md animate-slide-up">
         {/* Header */}
         <div className="text-center mb-8">
@@ -75,7 +75,7 @@ export default function RegisterPage() {
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-3xl shadow-xl shadow-rose-100 p-8">
+        <div className="bg-white rounded-3xl shadow-xl shadow-rose-100 p-6 sm:p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">
@@ -107,7 +107,7 @@ export default function RegisterPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                   Age *

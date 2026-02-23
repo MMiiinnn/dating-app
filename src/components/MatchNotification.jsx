@@ -18,10 +18,10 @@ export default function MatchNotification({ matchedUser, onClose }) {
 
       {/* Modal */}
       <div
-        className="relative z-10 bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center animate-bounce-in"
+        className="relative z-10 bg-white rounded-3xl shadow-2xl p-5 sm:p-8 max-w-sm w-full text-center animate-bounce-in"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-500 mb-2">
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-500 mb-2">
           It's a Match!
         </h2>
 
