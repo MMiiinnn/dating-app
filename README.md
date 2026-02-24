@@ -29,15 +29,15 @@ Every technical choice was made to keep the core loop tight: **Register → Like
 
 ## Tech Stack
 
-| Layer | Technology | Role |
+| Layer | Technology | Why It Was Chosen |
 |---|---|---|
-| **UI Framework** | React 19 + Vite 7 | Component rendering, fast dev server |
-| **Routing** | React Router DOM v7 | Client-side navigation, protected routes |
-| **Styling** | Tailwind CSS v3 | Utility-first CSS, responsive layout |
-| **Backend / DB** | Firebase Firestore v12 | NoSQL database + real-time listeners |
-| **Date Logic** | `date-fns` | Date formatting and time slot generation |
-| **Global State** | React Context API | Current user shared across all pages |
-| **Local State** | `useState` / `useEffect` | Per-component UI state |
+| **UI Framework** | React 19 + Vite 7 | Component-based architecture keeps UI modular; Vite provides near-instant HMR during development |
+| **Routing** | React Router DOM v7 | Declarative routing with built-in support for protected routes and URL params |
+| **Styling** | Tailwind CSS v3 | Utility-first approach eliminates context-switching between CSS files and components |
+| **Backend / DB** | Firebase Firestore v12 | Built-in real-time listeners (`onSnapshot`) eliminate the need for custom WebSocket infrastructure |
+| **Date Logic** | `date-fns` | Tree-shakable, immutable API — only the functions used are bundled, unlike Moment.js |
+| **Global State** | React Context API | Lightweight alternative to Redux for a single shared value (current user) |
+| **Local State** | `useState` / `useEffect` | Sufficient for per-component UI state without external dependencies |
 
 ---
 
@@ -77,6 +77,19 @@ src/
 - **UI layer last** — Pages and components only receive data and call functions; they contain no business logic.
 - **Pure utility** — `scheduler.js` is a zero-dependency pure function that can be tested in isolation.
 
+### Data Flow
+
+```
+User Action (click "Like")
+  → Page calls firestore.js function (sendLike)
+    → Firestore writes document to /likes
+      → onSnapshot listener detects change
+        → Custom hook (useMatches) updates state
+          → React re-renders UI with new data
+```
+
+All **writes** flow downward through `firestore.js`. All **reads** flow upward through real-time `onSnapshot` listeners wrapped in custom hooks. Pages never access Firestore directly — they consume hook return values and call exported functions.
+
 ---
 
 ## Data Storage
@@ -106,9 +119,17 @@ All persistent data is stored in Cloud Firestore, chosen specifically because it
 - **`array-contains` queries** on `userIds` to efficiently find all matches for a user.
 - **`serverTimestamp()`** for reliable timestamps independent of client clocks.
 
+**Advantages:** Zero backend code required, built-in real-time sync, automatic scaling, and generous free tier for prototyping.
+
+**Limitations:** No server-side validation (requires Security Rules for production), eventual consistency on multi-region setups, and query capabilities are more limited than SQL.
+
 ### 2. localStorage (session persistence)
 
 The user's generated UID is stored in `localStorage` as a lightweight session token. On page load, `UserContext` checks for this UID and restores the session from Firestore. If the UID no longer exists in the database (e.g. manually deleted), the stale token is cleaned up automatically.
+
+**Advantages:** Instant session restore without network calls, zero configuration.
+
+**Limitations:** Single-device only, no security guarantees — acceptable for a prototype but would be replaced by Firebase Auth in production.
 
 ---
 
@@ -122,7 +143,7 @@ When a user clicks "Like", `sendLike()` runs three chained steps:
 sendLike(fromUid, toUid)
   │
   ├── Step 1: Check for duplicate like
-  │     → If already liked, abort early (idempotent)
+  │     → If already liked, abort early
   │
   ├── Step 2: Write like document to /likes
   │     → { fromUid, toUid, timestamp }
@@ -222,6 +243,17 @@ The result appears as a live green banner on the Schedule page. It updates insta
 
 ---
 
+## Assumptions
+
+1. **Single device per user** — Each user accesses the app from one browser. Multi-device session sync is out of scope for this prototype.
+2. **Honest input** — Users provide truthful profile information. No verification or moderation system is implemented.
+3. **Firestore test mode** — The database runs with open read/write rules. Production deployment would require Security Rules.
+4. **1-hour time slots** — All availability slots are fixed at 1-hour blocks. Variable-length slots are not supported.
+5. **Time zone consistency** — All timestamps are stored and compared in UTC (ISO 8601). The UI displays them in the user's local time zone via the browser's `Date` API.
+6. **Small user base** — The `getAllUsersExceptCurrent` query fetches all users at once. For a large-scale app, pagination or filtering (by location, age, preferences) would be required.
+
+---
+
 ## AI-Assisted Development
 
 AI tools were used throughout the development process as a productivity multiplier:
@@ -236,27 +268,27 @@ AI tools were used throughout the development process as a productivity multipli
 
 ## If I Had More Time
 
-1. **Real Firebase Authentication** — Replace `localStorage` pseudo-auth with Firebase Auth (Google sign-in or email/password) for proper session management and security rules enforcement.
+1. **Real Firebase Authentication** — Replace `localStorage` pseudo-auth with Firebase Auth. This would enable multi-device login, secure session tokens, and allow Firestore Security Rules to validate user identity on every read/write.
 
-2. **Firestore Security Rules** — The current prototype runs in test mode. Production rules would restrict users to read/write only their own data.
+2. **Firestore Security Rules** — The current prototype runs in test mode. Production rules would restrict users to read/write only their own data, preventing impersonation and unauthorized match creation.
 
-3. **Profile Photos** — Integrate Firebase Storage for user-uploaded profile pictures.
+3. **Profile Photos** — Integrate Firebase Storage for user-uploaded profile pictures. Visual profiles significantly increase engagement and like rates in dating apps.
 
-4. **Smarter Scheduling** — Return all overlapping slots ranked by date, and let both users vote on their preferred time.
+4. **Smarter Scheduling** — Return all overlapping slots ranked by date and let both users vote on their preferred time. This reduces the chance of a single auto-picked slot being inconvenient for one party.
 
-5. **Better Mobile UX** — Redesign the `TimeSlotPicker` as a swipeable day-by-day view for smaller screens.
+5. **Better Mobile UX** — Redesign the `TimeSlotPicker` as a swipeable day-by-day view. The current 21-day × 13-hour grid is scroll-heavy on small screens.
 
-6. **Push Notifications** — Firebase Cloud Messaging alerts for new matches and confirmed date slots.
+6. **Push Notifications** — Firebase Cloud Messaging alerts for new matches and confirmed date slots. Users currently must have the app open to see updates.
 
 ---
 
 ## Proposed Features
 
-| # | Feature | Why |
-|---|---|---|
-| 1 | **Compatibility Score** | Show a match percentage based on shared interests or age proximity — helps users prioritize who to like |
-| 2 | **Chat After Matching** | Unlock a real-time chat room between matched users — keeps engagement inside the app |
-| 3 | **Date Confirmation** | A "Confirm Date" button that locks the agreed slot and sends a reminder — closes the loop on scheduling |
+| # | Feature | Description | Product Impact |
+|---|---|---|---|
+| 1 | **Compatibility Score** | Display a match percentage on each profile card based on shared interests or age proximity | Helps users prioritize who to like, increasing match quality and reducing wasted likes |
+| 2 | **Chat After Matching** | Unlock a real-time chat room between matched users, built on Firestore's real-time capabilities | Keeps user engagement inside the app instead of moving to external messaging platforms |
+| 3 | **Date Confirmation** | A "Confirm Date" button that locks the agreed slot and sends a calendar reminder to both users | Closes the scheduling loop — converts a suggested time into a committed plan, reducing no-shows |
 
 ---
 
