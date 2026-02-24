@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getAllUsersExceptCurrent } from '../firebase/firestore';
+import { getAllUsersExceptCurrent, getLikedUidsByUser } from '../firebase/firestore';
 import { useUser } from '../context/UserContext';
 import UserCard from '../components/UserCard';
 import MatchNotification from '../components/MatchNotification';
@@ -8,6 +8,7 @@ import Navbar from '../components/Navbar';
 export default function DiscoverPage() {
   const { currentUser } = useUser();
   const [users, setUsers] = useState([]);
+  const [likedUids, setLikedUids] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [matchEvent, setMatchEvent] = useState(null);
   const [error, setError] = useState('');
@@ -15,11 +16,16 @@ export default function DiscoverPage() {
   useEffect(() => {
     if (!currentUser?.uid) return;
 
-    const fetch = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const allUsers = await getAllUsersExceptCurrent(currentUser.uid);
+        // Fetch users and existing likes in parallel
+        const [allUsers, likedSet] = await Promise.all([
+          getAllUsersExceptCurrent(currentUser.uid),
+          getLikedUidsByUser(currentUser.uid),
+        ]);
         setUsers(allUsers);
+        setLikedUids(likedSet);
       } catch (err) {
         console.error(err);
         setError('Failed to load users. Check your Firestore rules.');
@@ -28,7 +34,7 @@ export default function DiscoverPage() {
       }
     };
 
-    fetch();
+    fetchData();
   }, [currentUser?.uid]);
 
   // Avoid re-rendering by using useCallback
@@ -38,6 +44,20 @@ export default function DiscoverPage() {
 
   const handleCloseNotification = useCallback(() => {
     setMatchEvent(null);
+  }, []);
+
+  // Called by UserCard after a successful like
+  const handleLiked = useCallback((uid) => {
+    setLikedUids((prev) => new Set([...prev, uid]));
+  }, []);
+
+  // Called by UserCard after a successful unlike
+  const handleUnliked = useCallback((uid) => {
+    setLikedUids((prev) => {
+      const next = new Set(prev);
+      next.delete(uid);
+      return next;
+    });
   }, []);
 
   return (
@@ -79,7 +99,9 @@ export default function DiscoverPage() {
                   key={user.uid}
                   user={user}
                   onMatch={handleMatch}
-                  alreadyLiked={false}
+                  onLiked={handleLiked}
+                  onUnliked={handleUnliked}
+                  alreadyLiked={likedUids.has(user.uid)}
                 />
               ))}
             </div>

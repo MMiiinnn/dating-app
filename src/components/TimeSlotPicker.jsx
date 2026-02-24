@@ -1,11 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { addDays, startOfDay, format, addHours } from 'date-fns';
 
 const HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
 const WEEKS = 3;
 
-export default function TimeSlotPicker({ onSlotsChange }) {
+export default function TimeSlotPicker({ onSlotsChange, initialSlots }) {
   const [selectedSlots, setSelectedSlots] = useState([]);
+
+  // Pre-populate with saved slots 
+  useEffect(() => {
+    if (initialSlots?.length) {
+      setSelectedSlots(initialSlots);
+    }
+  }, [initialSlots]);
+  
   const today = startOfDay(new Date());
   const days = Array.from({ length: WEEKS * 7 }, (_, i) => addDays(today, i + 1));
 

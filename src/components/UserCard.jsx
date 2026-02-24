@@ -1,27 +1,43 @@
 import { useState } from 'react';
-import { sendLike } from '../firebase/firestore';
+import { sendLike, cancelLike } from '../firebase/firestore';
 import { useUser } from '../context/UserContext';
 
 const GENDER_EMOJI = { male: '👨', female: '👩', other: '🧑' };
 
-export default function UserCard({ user, onMatch, alreadyLiked }) {
+export default function UserCard({ user, onMatch, onLiked, onUnliked, alreadyLiked }) {
   const { currentUser } = useUser();
   const [liked, setLiked] = useState(alreadyLiked);
-  const [loading, setLoading] = useState(false);
+  const [liking, setLiking] = useState(false);
+  const [unliking, setUnliking] = useState(false);
 
   const handleLike = async () => {
-    if (liked || loading || !currentUser) return;
-    setLoading(true);
+    if (liked || liking || !currentUser) return;
+    setLiking(true);
     try {
       const result = await sendLike(currentUser.uid, user.uid);
       setLiked(true);
+      onLiked?.(user.uid);
       if (result.matched) {
         onMatch?.(user, result.matchId);
       }
     } catch (err) {
       console.error('Like error:', err);
     } finally {
-      setLoading(false);
+      setLiking(false);
+    }
+  };
+
+  const handleUnlike = async () => {
+    if (!liked || unliking || !currentUser) return;
+    setUnliking(true);
+    try {
+      await cancelLike(currentUser.uid, user.uid);
+      setLiked(false);
+      onUnliked?.(user.uid);
+    } catch (err) {
+      console.error('Unlike error:', err);
+    } finally {
+      setUnliking(false);
     }
   };
 
@@ -44,26 +60,47 @@ export default function UserCard({ user, onMatch, alreadyLiked }) {
           {user.bio || 'No bio provided.'}
         </p>
         <div className="mt-4">
-          <button
-            onClick={handleLike}
-            disabled={liked || loading}
-            className={`w-full py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 ${
-              liked
-                ? 'bg-rose-100 text-rose-400 cursor-default'
-                : 'bg-gradient-to-r from-rose-500 to-rose-600 text-white hover:from-rose-600 hover:to-rose-700 active:scale-95 shadow-sm hover:shadow-rose-200 hover:shadow-md'
-            }`}
-          >
-            {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Liking...
-              </span>
-            ) : liked ? (
-              '❤️ Liked'
-            ) : (
-              '🤍 Like'
-            )}
-          </button>
+          {liked ? (
+            <button
+              onClick={handleUnlike}
+              disabled={unliking}
+              className="w-full py-2.5 rounded-xl font-semibold text-sm transition-all duration-200
+                bg-rose-100 text-rose-400
+                hover:bg-red-500 hover:text-white
+                active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed group/btn"
+            >
+              {unliking ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="w-4 h-4 border-2 border-rose-400 border-t-transparent rounded-full animate-spin" />
+                  Unliking...
+                </span>
+              ) : (
+                <span>
+                  <span className="group-hover/btn:hidden">❤️ Liked</span>
+                  <span className="hidden group-hover/btn:inline">💔 Unlike</span>
+                </span>
+              )}
+            </button>
+          ) : (
+            <button
+              onClick={handleLike}
+              disabled={liking}
+              className="w-full py-2.5 rounded-xl font-semibold text-sm transition-all duration-200
+                bg-gradient-to-r from-rose-500 to-rose-600 text-white
+                hover:from-rose-600 hover:to-rose-700
+                active:scale-95 shadow-sm hover:shadow-rose-200 hover:shadow-md
+                disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {liking ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Liking...
+                </span>
+              ) : (
+                '🤍 Like'
+              )}
+            </button>
+          )}
         </div>
       </div>
     </div>

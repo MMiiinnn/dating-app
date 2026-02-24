@@ -169,7 +169,7 @@ export default function SchedulePage() {
               </div>
             ) : (
               <>
-                <TimeSlotPicker onSlotsChange={setSelectedSlots} />
+                <TimeSlotPicker onSlotsChange={setSelectedSlots} initialSlots={myAvailability?.slots} />
 
                 {saveError && (
                   <div className="mt-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-600">

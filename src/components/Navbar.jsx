@@ -33,7 +33,7 @@ export default function Navbar() {
         {/* Logo */}
         <Link to="/discover" className="flex items-center gap-2 shrink-0">
           <span className="text-lg sm:text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-500">
-            Breeze
+            Dating App
           </span>
         </Link>
 

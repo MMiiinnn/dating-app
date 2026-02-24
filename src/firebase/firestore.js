@@ -8,6 +8,7 @@ import {
   onSnapshot,
   doc,
   setDoc,
+  deleteDoc,
 } from 'firebase/firestore';
 import { db } from './config';
 
@@ -46,6 +47,21 @@ export async function getAllUsersExceptCurrent(uid) {
 }
 
 // === Likes ===
+
+/**
+ * @param {string} fromUid
+ * @returns {Promise<Set<string>>}
+ */
+export async function getLikedUidsByUser(fromUid) {
+  try {
+    const q = query(collection(db, 'likes'), where('fromUid', '==', fromUid));
+    const snapshot = await getDocs(q);
+    return new Set(snapshot.docs.map((d) => d.data().toUid));
+  } catch (error) {
+    console.error('getLikedUidsByUser error:', error);
+    return new Set();
+  }
+}
 
 /**
  * @param {string} fromUid
@@ -91,6 +107,36 @@ async function getLike(fromUid, toUid) {
   );
   const snapshot = await getDocs(q);
   return !snapshot.empty;
+}
+
+/**
+ * @param {string} fromUid
+ * @param {string} toUid
+ * @returns {Promise<{ unmatched: boolean }>}
+ */
+export async function cancelLike(fromUid, toUid) {
+  try {
+    // Find and delete the like document
+    const likeQuery = query(
+      collection(db, 'likes'),
+      where('fromUid', '==', fromUid),
+      where('toUid', '==', toUid)
+    );
+    const likeSnap = await getDocs(likeQuery);
+    await Promise.all(likeSnap.docs.map((d) => deleteDoc(doc(db, 'likes', d.id))));
+
+    // If a match existed between them, delete it too
+    const existingMatch = await getExistingMatch(fromUid, toUid);
+    if (existingMatch) {
+      await deleteDoc(doc(db, 'matches', existingMatch.matchId));
+      return { unmatched: true };
+    }
+
+    return { unmatched: false };
+  } catch (error) {
+    console.error('cancelLike error:', error);
+    throw error;
+  }
 }
 
 /**
