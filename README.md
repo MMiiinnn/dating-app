@@ -16,13 +16,14 @@ Every technical choice was made to keep the core loop tight: **Register → Like
 
 ## Features
 
-- **User Registration** — Lightweight pseudo-auth using `localStorage` (no Firebase Auth required)
+- **User Registration & Profile Selection** — First-time users create a profile; returning users select from existing profiles (no Firebase Auth needed)
 - **Discover Page** — Browse other users, send or cancel likes
 - **Mutual Matching** — A match is created only when two users like each other
 - **Unlike / Unmatch** — Users can cancel a like, which also removes the match if one existed
 - **Match Notifications** — Real-time modal popup with auto-dismiss on mutual match
 - **Matches Page** — Live list of all your mutual matches, updated in real-time
 - **Schedule a Date** — Both users pick time slots; the app finds the **first overlapping slot** automatically
+- **Switch Account** — One-click account switching so all matching and scheduling features can be tested in a single browser, without needing to open a second browser or clear `localStorage` manually
 - **Protected Routes** — All pages except registration require an active session
 
 ---

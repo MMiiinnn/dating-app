@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 
 const NAV_LINKS = [
@@ -24,8 +24,14 @@ const NAV_LINKS = [
 ];
 
 export default function Navbar() {
-  const { currentUser } = useUser();
+  const { currentUser, switchAccount } = useUser();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleSwitchAccount = () => {
+    switchAccount();
+    navigate('/register');
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-md border-b border-rose-100 shadow-sm">
@@ -67,6 +73,16 @@ export default function Navbar() {
             <span className="hidden sm:block text-sm font-medium text-gray-700 max-w-[120px] truncate">
               {currentUser.name}
             </span>
+            <button
+              onClick={handleSwitchAccount}
+              className="ml-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all duration-200"
+              title="Switch account"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                <path fillRule="evenodd" d="M3 4.25A2.25 2.25 0 015.25 2h5.5A2.25 2.25 0 0113 4.25v2a.75.75 0 01-1.5 0v-2a.75.75 0 00-.75-.75h-5.5a.75.75 0 00-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 00.75-.75v-2a.75.75 0 011.5 0v2A2.25 2.25 0 0110.75 18h-5.5A2.25 2.25 0 013 15.75V4.25z" clipRule="evenodd" />
+                <path fillRule="evenodd" d="M19 10a.75.75 0 00-.75-.75H8.704l1.048-.943a.75.75 0 10-1.004-1.114l-2.5 2.25a.75.75 0 000 1.114l2.5 2.25a.75.75 0 101.004-1.114l-1.048-.943h9.546A.75.75 0 0019 10z" clipRule="evenodd" />
+              </svg>
+            </button>
           </div>
         )}
       </div>

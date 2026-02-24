@@ -46,6 +46,20 @@ export async function getAllUsersExceptCurrent(uid) {
   }
 }
 
+/**
+ * @returns {Promise<Array>} All registered users
+ */
+export async function getAllUsers() {
+  try {
+    const usersRef = collection(db, 'users');
+    const snapshot = await getDocs(usersRef);
+    return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+  } catch (error) {
+    console.error('getAllUsers error:', error);
+    throw error;
+  }
+}
+
 // === Likes ===
 
 /**

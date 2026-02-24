@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
@@ -34,8 +34,13 @@ export function UserProvider({ children }) {
     fetchUser();
   }, []);
 
+  const switchAccount = useCallback(() => {
+    localStorage.removeItem('datingAppUid');
+    setCurrentUser(null);
+  }, []);
+
   return (
-    <UserContext.Provider value={{ currentUser, setCurrentUser, loading }}>
+    <UserContext.Provider value={{ currentUser, setCurrentUser, loading, switchAccount }}>
       {children}
     </UserContext.Provider>
   );
